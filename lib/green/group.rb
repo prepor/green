@@ -8,8 +8,10 @@ class Green
       @greens = []
     end
 
-    def spawn(&blk)
-      g = Green.spawn(&blk)
+    def spawn(*args, &blk)
+      g = Green.spawn do
+        blk.call(*args)
+      end
       add g
       g.callback { discard g }
       g
@@ -41,13 +43,11 @@ class Green
             i = iter.next
             puts "NEXT #{i}"
             waiting += 1
-            spawn_clb = proc do 
-              puts "SPAWNED #{i}, #{Fiber.current}"
-              y << blk.call(i)
+            spawn(i) do |item|
+              y << blk.call(item)
               waiting -= 1
               e.set if waiting == 0 
             end
-            spawn(&spawn_clb)
           end          
         rescue StopIteration
           e.wait
@@ -63,11 +63,11 @@ class Green
       @semaphore = Semaphore.new(options[:size])
     end
 
-    def spawn(&blk)
+    def spawn(*args, &blk)
       semaphore.acquire
-      super do
+      super() do
         begin
-          blk.call
+          blk.call(*args)
         ensure
           semaphore.release
         end
