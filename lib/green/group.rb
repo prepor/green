@@ -30,7 +30,9 @@ class Green
     end
 
     def join
-      greens.each(&:join)
+      while (g = greens.pop)
+        g.join
+      end
     end
 
     def enumerator(iterable, &blk)
@@ -41,7 +43,6 @@ class Green
           waiting = 0
           while true
             i = iter.next
-            puts "NEXT #{i}"
             waiting += 1
             spawn(i) do |item|
               y << blk.call(item)

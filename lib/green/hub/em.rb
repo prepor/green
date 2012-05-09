@@ -1,4 +1,23 @@
 require 'eventmachine'
+
+class ::EM::Timer
+  include Green::Waiter
+
+  def green_cancel
+    cancel
+  end
+end
+
+module ::EM::Deferrable
+  include Green::Waiter
+
+  def green_cancel
+    # instance_variable_get(:@callbacks).each { |c| cancel_callback c }
+    # instance_variable_get(:@errbacks).each { |c| cancel_errback c }
+    # cancel_timeout
+  end
+end
+
 class Green
   class Hub
     class EM < Hub

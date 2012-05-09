@@ -2,11 +2,25 @@ require 'fiber'
 require 'pp'
 require 'thread'
 
-require 'green/ext'
-require 'green/hub'
+class Green
+  VERSION = "0.0.1"
+  class Proxy
+    attr_reader :f
+    def initialize
+      @f = Fiber.current
+    end
 
-require 'green/hub/em'
-class Green  
+    def switch(*args)
+      f.transfer(*args)
+    end
+  end
+
+  module Waiter
+    def green_cancel
+      raise "override"
+    end
+  end
+
   class << self
     
     def thread_locals
@@ -50,17 +64,13 @@ class Green
     end
   end
 
-  class Proxy
-    attr_reader :f
-    def initialize
-      @f = Fiber.current
-    end
+  # class GreenError < StandardError; end
+  # class GreenKill < GreenError; end
 
-    def switch(*args)
-      f.transfer(*args)
-    end
-  end
+  require 'green/ext'
+  require 'green/hub'
 
+  require 'green/hub/em'
 
   attr_reader :f, :callbacks
   def initialize()
@@ -72,6 +82,7 @@ class Green
     end
     @f[:green] = self
   end
+
 
   def switch(*args)
     return unless f.alive?
@@ -97,6 +108,10 @@ class Green
     callback { |*res| g.switch(*res) }
     Green.hub.switch
   end
+
+  # def kill
+  #   self.throw(GreenKill.new)
+  # end
 
   MAIN = Fiber.current[:green] = Proxy.new
 end

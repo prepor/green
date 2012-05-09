@@ -1,5 +1,6 @@
 class Green
   class Semaphore
+    include Green::Waiter
     attr_accessor :counter
     def initialize(value = 1)
       @counter = value
@@ -12,8 +13,8 @@ class Green
         true
       else
         g = Green.current
-        rawlink { g.switch }
-        Green.hub.switch
+        clb = rawlink { g.switch }
+        Green.hub.wait self, clb
         self.counter -= 1
         true
       end
@@ -29,6 +30,15 @@ class Green
 
     def rawlink(&clb)
       @links << clb
+      clb
+    end
+
+    def unlink(clb)
+      @links.delete clb
+    end
+
+    def green_cancel(clb)
+      unlink clb
     end
   end
 end

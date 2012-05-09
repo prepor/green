@@ -1,5 +1,6 @@
 class Green
   class Event
+    include Green::Waiter
     attr_reader :waiters
     def initialize
       @waiters = []
@@ -17,8 +18,12 @@ class Green
         @result
       else
         waiters << Green.current
-        Green.hub.switch
+        Green.hub.wait self, Green.current
       end
+    end
+
+    def green_cancel(waiter)
+      waiters.delete waiter
     end
   end
 end

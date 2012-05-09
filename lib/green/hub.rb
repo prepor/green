@@ -14,10 +14,17 @@ class Green
       g.switch
     end
 
+    def wait(waiter, *args)
+      switch
+    rescue => e
+      waiter.green_cancel(*args)
+      raise e
+    end
+
     def sleep(n)
       g = Green.current
-      timer(n) { g.switch }
-      switch
+      t = timer(n) { g.switch }
+      wait t
     end
 
     def run

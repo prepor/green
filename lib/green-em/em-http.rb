@@ -5,6 +5,7 @@ rescue LoadError => error
 end
 
 module EventMachine
+  class HTTPException < RuntimeError; end
   module HTTPMethods
      %w[get head post delete put].each do |type|
        class_eval %[
@@ -15,11 +16,11 @@ module EventMachine
            conn = setup_request(:#{type}, options, &blk)
            if conn.error.nil?
              conn.callback { g.switch(conn) }
-             conn.errback  { g.switch(conn) }
+             conn.errback  { g.throw(HTTPException.new(conn)) }
              
-             Green.hub.switch
+             Green.hub.wait(conn)
            else
-             conn
+             raise HTTPException.new(conn)
            end
          end
       ]

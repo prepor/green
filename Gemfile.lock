@@ -1,15 +1,12 @@
+PATH
+  remote: .
+  specs:
+    green (0.0.1)
+
 GEM
   remote: http://rubygems.org/
   specs:
     addressable (2.2.7)
-    columnize (0.3.6)
-    debugger (1.1.1)
-      columnize (>= 0.3.1)
-      debugger-linecache (~> 1.1)
-      debugger-ruby_core_source (~> 1.1)
-    debugger-linecache (1.1.1)
-      debugger-ruby_core_source (>= 1.1.1)
-    debugger-ruby_core_source (1.1.1)
     em-http-request (1.0.0)
       addressable (>= 2.2.3)
       em-socksify
@@ -19,11 +16,19 @@ GEM
       eventmachine (>= 1.0.0.beta.4)
     eventmachine (1.0.0.mail.7)
     http_parser.rb (0.5.3)
+    kgio (2.7.4)
+    rack (1.4.1)
+    raindrops (0.8.0)
+    unicorn (4.2.1)
+      kgio (~> 2.6)
+      rack
+      raindrops (~> 0.7)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  debugger
   em-http-request
   eventmachine (~> 1.0.0.beta.4)
+  green!
+  unicorn
