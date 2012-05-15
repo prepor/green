@@ -25,7 +25,10 @@ Gem::Specification.new do |s|
   s.files = %w[
     Gemfile
     Gemfile.lock
+    Rakefile
     Readme.md
+    app.ru
+    green.gemspec
     lib/green-em/em-http.rb
     lib/green.rb
     lib/green/event.rb
@@ -36,8 +39,6 @@ Gem::Specification.new do |s|
     lib/green/monkey.rb
     lib/green/semaphore.rb
     lib/green/tcp_socket.rb
-    test.rb
-    test2.rb
   ]
   # = MANIFEST =
 

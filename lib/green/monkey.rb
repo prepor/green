@@ -1,13 +1,11 @@
-class Green
-  module Monkey
-    extend self
+require 'green/socket'
 
-    def patch_constants
-      
-    end
-    
-    def patch_socket
-      
-    end
-  end
-end
+original_verbosity = $VERBOSE
+$VERBOSE = nil    
+
+Socket = Green::Socket
+TCPSocket = Green::TCPSocket
+TCPServer = Green::TCPServer
+
+
+$VERBOSE = original_verbosity

@@ -14,17 +14,17 @@ class Green
       g.switch
     end
 
-    def wait(waiter, *args)
+    def wait(proc = nil, &cancel_clb)
       switch
     rescue => e
-      waiter.green_cancel(*args)
+      (proc || cancel_clb).call
       raise e
     end
 
     def sleep(n)
       g = Green.current
       t = timer(n) { g.switch }
-      wait t
+      wait { t.green_cancel }
     end
 
     def run
@@ -36,6 +36,10 @@ class Green
     end
 
     def callback(&blk)
+      raise "override"
+    end
+
+    def socket_waiter(socket)
       raise "override"
     end
   end

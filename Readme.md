@@ -51,5 +51,47 @@ rescue Timeout::Error
 end
 ```
 
-And much more soon ;)
+You can use net/http (and any gem over it):
 
+```
+require 'green'
+require 'green/group'
+require 'green/monkey'
+require 'net/http'
+
+g = Green::Pool.new(size: 2)
+
+hosts = ['google.com', 'yandex.ru']
+
+results = g.enumerator(hosts) do |host|
+  Net::HTTP.get host, '/'
+end.map { |i| i }
+
+p results
+```
+
+You can run nonblock Web application with any webserver:
+
+```ruby
+require 'green'
+require 'green/group'
+
+app = proc do |env|
+  start = Time.now
+  g = Green::Group.new
+  results = []
+  g.spawn do
+    Green.sleep 1
+    results << :fiz
+  end
+  g.spawn do
+    Green.sleep 1
+    results << :buz
+  end
+  g.join
+  [200, {"Content-Type" => 'plain/text'}, ["Execution time: #{Time.now - start}; Results: #{results.inspect}"]]
+end
+run app 
+```
+
+Run it with `unicorn app.ru`

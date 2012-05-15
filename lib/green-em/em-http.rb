@@ -18,7 +18,7 @@ module EventMachine
              conn.callback { g.switch(conn) }
              conn.errback  { g.throw(HTTPException.new(conn)) }
              
-             Green.hub.wait(conn)
+             Green.hub.wait { conn.green_cancel }
            else
              raise HTTPException.new(conn)
            end

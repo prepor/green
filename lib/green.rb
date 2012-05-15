@@ -15,6 +15,31 @@ class Green
     end
   end
 
+  class SocketWaiter
+    attr_reader :socket, :readers, :writers
+    def initialize(socket)
+      @socket = socket
+      @readers = []
+      @writers = []
+    end
+
+    def wait_read
+      g = Green.current
+      @readers << g
+      Green.hub.wait { @readers.delete g }
+    end
+
+    def wait_write
+      g = Green.current
+      @writers << g
+      Green.hub.wait { @writers.delete g }
+    end
+
+    def cancel
+      
+    end
+  end
+
   module Waiter
     def green_cancel
       raise "override"
@@ -56,7 +81,7 @@ class Green
     def timeout(n, &blk)
       g = current
       timer = hub.timer(n) do
-        g.switch Timeout::Error.new
+        g.throw Timeout::Error.new
       end
       res = blk.call
       timer.cancel
@@ -85,7 +110,6 @@ class Green
 
 
   def switch(*args)
-    return unless f.alive?
     f.transfer(*args).tap do |*res|
       res.size == 1 && res.first.is_a?(Exception) && raise(res.first)
     end

@@ -1,7 +1,13 @@
 source "http://rubygems.org"
 
-gem "eventmachine", "~> 1.0.0.beta.4"
+gem "eventmachine", "= 1.0.0.beta.4"
 gem "em-http-request"
 gem "unicorn"
+
+group :test do
+  gem "rr"
+  gem "minitest"
+  gem "debugger"
+end
 
 gemspec

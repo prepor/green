@@ -30,9 +30,13 @@ class Green
     end
 
     def join
-      while (g = greens.pop)
+      while (g = greens.first)
         g.join
       end
+    end
+
+    def size
+      greens.size
     end
 
     def enumerator(iterable, &blk)
@@ -73,6 +77,10 @@ class Green
           semaphore.release
         end
       end
+    end
+
+    def join
+      semaphore.wait
     end
   end
 end
