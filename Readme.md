@@ -53,7 +53,7 @@ end
 
 You can use net/http (and any gem over it):
 
-```
+```ruby
 require 'green'
 require 'green/group'
 require 'green/monkey'
