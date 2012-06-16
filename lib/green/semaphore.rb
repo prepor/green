@@ -62,6 +62,114 @@ class Green
     def wait_avaliable
       wait value - 1
     end
+  end
 
+  # With Ruby compatible API
+  class Mutex < Semaphore
+    def initialize
+      super 1
+      @slept = {}
+    end
+
+    def synchronize
+      lock
+      yield
+    ensure
+      unlock
+    end
+
+    def lock
+      if Green.current.locals["mutex_locked_#{self.object_id}"]
+        Green.current.locals.delete "mutex_locked_#{self.object_id}"
+        raise Green::GreenError.new
+      end
+      Green.current.locals["mutex_locked_#{self.object_id}"] = true
+      acquire
+    end
+
+    def unlock
+      raise Green::GreenError.new unless Green.current.locals["mutex_locked_#{self.object_id}"]
+      Green.current.locals.delete "mutex_locked_#{self.object_id}"
+      release
+    end
+
+    def _wakeup(green)
+      if @slept.delete(green)
+        Green.hub.callback { green.switch }
+      end
+    end
+
+    def sleep(timeout = nil)
+      unlock    
+      beg = Time.now
+      current = Green.current
+      @slept[current] = true
+      begin
+        if timeout
+          t = Green.hub.timer(timeout) { _wakeup(current) }
+          Green.hub.switch
+          t.green_cancel
+        else
+          Green.hub.switch
+        end
+      ensure
+        @slept.delete current
+      end
+      yield if block_given?
+      lock
+      Time.now - beg
+    end
+  end
+
+  class ConditionVariable
+    def initialize
+      @waiters = []
+    end
+
+    #
+    # Releases the lock held in +mutex+ and waits; reacquires the lock on wakeup.
+    #
+    # If +timeout+ is given, this method returns after +timeout+ seconds passed,
+    # even if no other thread doesn't signal.
+    #
+    def wait(mutex, timeout=nil)
+      current = Green.current
+      pair = [mutex, current]
+      @waiters << pair
+      mutex.sleep timeout do
+        @waiters.delete pair
+      end
+      self
+    end
+
+    def _wakeup(mutex, green)
+      if alive = green.alive?
+        Green.hub.callback {
+          mutex._wakeup(green)
+        }
+      end
+      alive
+    end
+
+    #
+    # Wakes up the first thread in line waiting for this lock.
+    #
+    def signal
+      while (pair = @waiters.shift)
+        break if _wakeup(*pair)
+      end
+      self
+    end
+
+    #
+    # Wakes up all threads waiting for this lock.
+    #
+    def broadcast
+      @waiters.each do |mutex, green|
+        _wakeup(mutex, green)
+      end
+      @waiters.clear
+      self
+    end
   end
 end

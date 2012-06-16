@@ -30,9 +30,15 @@ class Green
     end
 
     def join
+      res = []
       while (g = greens.first)
-        g.join
+        res << g.join
       end
+      res
+    end
+
+    def kill
+      greens.each(&:kill)
     end
 
     def size
@@ -65,6 +71,7 @@ class Green
     attr_reader :semaphore
     def initialize(*args)
       super
+      raise ArgumentError.new("Undefined option :size") unless options[:size]
       @semaphore = Semaphore.new(options[:size])
     end
 

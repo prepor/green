@@ -4,7 +4,39 @@ require 'thread'
 
 class Green
   VERSION = "0.0.1"
+
+  module GreenMethods
+    def switch(*args)
+      f.transfer(*args).tap do |*res|
+        if res.size == 1 && res.first.is_a?(ThrowException)
+          raise(res.first.exc)
+        end
+      end
+    end
+    
+    def throw(exc = RuntimeException.new)
+      Green.hub.callback { switch(ThrowException.new exc) }
+    end
+
+    def kill
+      self.throw(GreenKill.new)
+    end
+
+    def locals
+      f.local_fiber_variables
+    end
+
+    def [](name)
+      locals[name]
+    end
+
+    def []=(name, val)
+      locals[name] = val
+    end
+  end
+
   class Proxy
+    include GreenMethods
     attr_reader :f
     def initialize
       @f = Fiber.current
@@ -12,6 +44,10 @@ class Green
 
     def switch(*args)
       f.transfer(*args)
+    end
+
+    def alive?
+      f.alive?
     end
   end
 
@@ -89,42 +125,51 @@ class Green
     end
   end
 
-  # class GreenError < StandardError; end
-  # class GreenKill < GreenError; end
+  class GreenError < StandardError; end
+  class GreenKill < GreenError; end
+
+  class ThrowException < Struct.new(:exc); end
 
   require 'green/ext'
   require 'green/hub'
 
   require 'green/hub/em'
 
+  include GreenMethods
+
   attr_reader :f, :callbacks
-  def initialize()
+  def initialize
     @callbacks = []
+    @alive = true
     @f = Fiber.new do
-      res = yield
-      @callbacks.each { |c| c.call(*res) }
+      begin
+        *res = yield
+      rescue GreenKill => e
+      end
+      @alive = false
+      @callbacks.each { |c| 
+        c.call(*res)
+      }
       Green.hub.switch
     end
     @f[:green] = self
   end
 
-
-  def switch(*args)
-    f.transfer(*args).tap do |*res|
-      res.size == 1 && res.first.is_a?(Exception) && raise(res.first)
-    end
-  end
-
-  def throw(exc = RuntimeException.new)
-    switch(exc)
+  def alive?
+    @alive
   end
 
   def start
     Green.hub.callback { self.switch }
   end
 
-  def callback(&blk)
-    callbacks << blk
+  def callback(cb=nil, &blk)
+    cb ||= blk
+    if alive?
+      callbacks << cb
+    else
+      Green.hub.callback(cb)
+    end
   end
 
   def join
@@ -132,10 +177,6 @@ class Green
     callback { |*res| g.switch(*res) }
     Green.hub.switch
   end
-
-  # def kill
-  #   self.throw(GreenKill.new)
-  # end
 
   MAIN = Fiber.current[:green] = Proxy.new
 end

@@ -17,9 +17,17 @@ class Fiber
     local_fiber_variables[key] = value
   end
   
-  private
-  
   def local_fiber_variables
     @local_fiber_variables ||= {}
+  end
+end
+
+module Kernel
+  def suppress_warnings
+    original_verbosity = $VERBOSE
+    $VERBOSE = nil
+    result = yield
+    $VERBOSE = original_verbosity
+    return result
   end
 end

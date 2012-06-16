@@ -90,12 +90,16 @@ class Green
         ::EM::Timer.new(n, &blk)
       end
 
-      def callback(&blk)
-        ::EM.next_tick(&blk)
+      def callback(cb=nil, &blk)
+        ::EM.next_tick(cb || blk)
       end
 
       def socket_waiter(socket)
         SocketWaiter.new socket
+      end
+
+      def stop
+        EM.stop
       end
     end
   end

@@ -25,6 +25,7 @@ class Green
       g = Green.current
       t = timer(n) { g.switch }
       wait { t.green_cancel }
+      t
     end
 
     def run
@@ -40,6 +41,10 @@ class Green
     end
 
     def socket_waiter(socket)
+      raise "override"
+    end
+
+    def stop
       raise "override"
     end
   end

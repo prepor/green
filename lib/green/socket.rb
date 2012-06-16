@@ -1,21 +1,74 @@
 require "fcntl"
+require 'socket'
+require 'kgio'
 
 class Green
+  
+  ERRORS = Errno::constants.each_with_object({}) do |c, h|
+    const = Errno.const_get(c)
+    h[const::Errno] = const    
+  end
+
+  # TODO puts
   class Socket < ::Socket
     READ_BUFFER_SIZE = 65536
+
+    include Kgio::SocketMethods
+
+    alias :write :kgio_write
+
+    def read(length = nil, buffer = nil)
+      res = []
+      readed = 0
+      begin # begin ... while
+        need_read = if length
+          length - readed
+        else
+          READ_BUFFER_SIZE
+        end        
+        data = kgio_read(need_read)
+        if data.nil? && length.nil? && readed == 0
+          return ''
+        elsif data.nil? && readed == 0
+          return nil
+        elsif data.nil?
+          return buffer ? buffer.replace(res * '') : res * ''
+        else
+          readed += data.size
+          res << data
+        end
+      end while length != readed
+      return buffer ? buffer.replace(res * '') : res * ''
+    end
+
+    def recv(maxlen, flags = 0)
+      recv_nonblock(maxlen)
+    rescue Errno::EAGAIN
+      waiter.wait_read
+      retry
+    end
+
+    def send(mesg, flags, dest_sockaddr = nil)
+      # FIXME
+      write mesg
+    end
+
+    def kgio_wait_readable
+      waiter.wait_write
+    end
+
+    def kgio_wait_readable
+      waiter.wait_read
+    end
 
     def self.accept_socket_class
       self
     end
 
-    def set_nonblock
-      flags = fcntl(Fcntl::F_GETFL, 0)
-      fcntl(Fcntl::F_SETFL, flags | Fcntl::O_NONBLOCK)
-    end
-
     def accept
       s, a = accept_nonblock
-      [self.class.for_fd(s.fileno), a]
+      Kernel.puts "ACCEPT FD: #{s.fileno}"
+      [self.class.accept_socket_class.for_fd(s.fileno), a]
     rescue Errno::EAGAIN
       waiter.wait_read
       retry
@@ -24,59 +77,12 @@ class Green
     def connect(sock_addr)
       connect_nonblock(sock_addr)
     rescue Errno::EINPROGRESS
-      waiter.wait_write
-    end
-
-    def send(mesg, flags = 0, dest_sockaddr = nil)
-      super(mesg, flags, dest_sockaddr)
-    rescue Errno::EAGAIN
-      waiter.wait_write
-      retry
-    end
-
-    def recv(maxlen, flags = 0)
-      super(maxlen, flags = 0)
-    rescue Errno::EAGAIN
-      waiter.wait_read
-      retry
-    end
-
-    def write(string)
-      green_write string
-    end
-
-    def green_write(string, original_size = string.size)
-      writed = write_nonblock(string)
-      if writed == string.size
-        return original_size
+      error, = getsockopt(::Socket::SOL_SOCKET, ::Socket::SO_ERROR).unpack('i')
+      if error != 0
+        raise ERRORS[error]
       else
-        green_write(string[writed, string.size])
+        waiter.wait_write
       end
-    rescue Errno::EAGAIN
-      waiter.wait_write
-      retry
-    end
-
-    def read(length = nil, buffer = nil)      
-      green_read length, buffer || ""
-    end
-
-    def green_read(length, buffer = "")
-      while length != buffer.size
-        need_read = if length
-          length - buffer.size
-        else
-          READ_BUFFER_SIZE
-        end
-        begin          
-          buffer << read_nonblock(need_read)
-        rescue EOFError, Errno::ECONNRESET
-          return buffer
-        rescue Errno::EAGAIN
-          waiter.wait_read
-        end
-      end
-      buffer
     end
 
     def waiter
@@ -84,26 +90,29 @@ class Green
     end
 
     def close
-      waiter.cancel
-      super      
+      waiter.cancel if @waiter
+      super
     end
   end
 
   class TCPSocket < Socket
     def initialize(remote_host, remote_port, local_host = nil, local_port = nil)
-      super(:INET, :STREAM, 0)
+      addrinfo = Addrinfo.tcp(remote_host, remote_port)
+      super(addrinfo.ipv4? ? :INET : :INET6, :STREAM, 0)
       if local_host && local_port
         bind(Addrinfo.tcp(local_host, local_port))
       end
-      connect Addrinfo.tcp(remote_host, remote_port)
+      connect addrinfo
     end
   end
 
   class TCPServer < Socket
     def initialize(host, port)
-      super(:INET, :STREAM, 0)
+      addrinfo = Addrinfo.tcp(host, port)
+      super(addrinfo.ipv4? ? :INET : :INET6, :STREAM, 0)
       setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1)
-      bind(Addrinfo.tcp(host, port))
+      bind(addrinfo)
+      listen(5)
     end
 
 

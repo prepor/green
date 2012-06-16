@@ -5,12 +5,20 @@ require 'set'
 describe Green::Group do
   let(:g) { Green::Group.new }
 
-  it "should wait each task" do
-    result = ""
-    g.spawn { result << "fiz" }
-    g.spawn { result << "baz" }
-    g.join
-    result.must_equal "fizbaz"
+  describe "join" do
+    it "should wait each task" do
+      result = ""
+      g.spawn { result << "fiz" }
+      g.spawn { result << "baz" }
+      g.join
+      result.must_equal "fizbaz"
+    end
+
+    it "return each result" do
+      g.spawn { 1 }
+      g.spawn { 2 }
+      g.join.reduce(0, &:+).must_equal 3
+    end
   end
 
   describe "apply" do
