@@ -5,11 +5,12 @@ class Green
     attr_reader :options, :greens
     def initialize(options = {})      
       @options = options
+      @options[:klass] ||= Green
       @greens = []
     end
 
-    def spawn(klass = Green, *args, &blk)
-      g = klass.spawn do
+    def spawn(*args, &blk)
+      g = @options[:klass].spawn do
         blk.call(*args)
       end
       add g
@@ -75,9 +76,9 @@ class Green
       @semaphore = Semaphore.new(options[:size])
     end
 
-    def spawn(klass = Green, *args, &blk)
+    def spawn(*args, &blk)
       semaphore.acquire
-      super(klass) do
+      super() do
         begin
           blk.call(*args)
         ensure

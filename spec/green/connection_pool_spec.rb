@@ -36,7 +36,7 @@ describe Green::ConnectionPool do
       g.spawn { pool.query(QUERY) }
       res = g.join
 
-      (Time.now.to_f - start.to_f).must_be_within_epsilon DELAY, DELAY * 0.30
+      (Time.now.to_f - start.to_f).must_be_within_epsilon DELAY, DELAY * 0.2
       res.size.must_equal 2
     end
   end
