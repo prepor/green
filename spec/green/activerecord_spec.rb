@@ -49,7 +49,7 @@
 #   #   res.push Widget.find_by_sql(QUERY)
 #   #   res.push Widget.find_by_sql(QUERY)
 
-#   #   (Time.now.to_f - start.to_f).must_be_within_epsilon DELAY * res.size, DELAY * res.size * 0.15
+#   #   (Time.now.to_f - start.to_f).must_be_within_delta DELAY * res.size, DELAY * res.size * 0.15
 #   #   res.size.must_equal 2
 #   # end
 
