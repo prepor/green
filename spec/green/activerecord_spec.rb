@@ -42,23 +42,24 @@ describe Green::ActiveRecord do
     result.size.must_equal 1
   end
 
-  it "should fire sequential, synchronous requests within single green" do
-    start = Time.now.to_f
-    res = []
+  # it "should fire sequential, synchronous requests within single green" do
+  #   start = Time.now.to_f
+  #   res = []
 
-    res.push Widget.find_by_sql(QUERY)
-    res.push Widget.find_by_sql(QUERY)
+  #   res.push Widget.find_by_sql(QUERY)
+  #   res.push Widget.find_by_sql(QUERY)
 
-    (Time.now.to_f - start.to_f).must_be_within_epsilon DELAY * res.size, DELAY * res.size * 0.15
-    res.size.must_equal 2
-  end
+  #   (Time.now.to_f - start.to_f).must_be_within_epsilon DELAY * res.size, DELAY * res.size * 0.15
+  #   res.size.must_equal 2
+  # end
 
   it "should fire 100 requests" do
     pool = Green::Pool.new size: 40
-    44.times do
-      pool.spawn do
+    50.times do
+      pool.spawn(Green::ActiveRecord::Green) do
         widget = Widget.create title: 'hi'
         widget.update_attributes title: 'hello'
+        puts "AFTER!"
       end
     end
   end

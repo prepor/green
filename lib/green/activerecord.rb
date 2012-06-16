@@ -12,7 +12,12 @@ require 'green/connection_pool'
 # end
 class Green
   module ActiveRecord
-
+    class Green < ::Green
+      def initialize
+        super
+        callback { puts "clear!"; ::ActiveRecord::Base.clear_active_connections! }
+      end
+    end
   end
 end
 # module ActiveRecord

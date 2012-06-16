@@ -8,8 +8,8 @@ class Green
       @greens = []
     end
 
-    def spawn(*args, &blk)
-      g = Green.spawn do
+    def spawn(klass = Green, *args, &blk)
+      g = klass.spawn do
         blk.call(*args)
       end
       add g
@@ -75,9 +75,9 @@ class Green
       @semaphore = Semaphore.new(options[:size])
     end
 
-    def spawn(*args, &blk)
+    def spawn(klass = Green, *args, &blk)
       semaphore.acquire
-      super() do
+      super(klass) do
         begin
           blk.call(*args)
         ensure

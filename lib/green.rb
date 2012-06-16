@@ -111,7 +111,7 @@ class Green
     end
 
     def spawn(&blk)
-      Green.new(&blk).tap { |o| o.start }
+      new(&blk).tap { |o| o.start }
     end
 
     def timeout(n, &blk)
@@ -122,6 +122,14 @@ class Green
       res = blk.call
       timer.cancel
       res
+    end
+
+    def list_hash
+      @list_hash ||= {}
+    end
+
+    def list
+      list_hash.values
     end
   end
 
@@ -141,7 +149,8 @@ class Green
   def initialize
     @callbacks = []
     @alive = true
-    @f = Fiber.new do
+    Green.list_hash[self] = self
+    @f = Fiber.new do      
       begin
         *res = yield
       rescue GreenKill => e
@@ -150,6 +159,7 @@ class Green
       @callbacks.each { |c| 
         c.call(*res)
       }
+      Green.list_hash.delete self
       Green.hub.switch
     end
     @f[:green] = self
