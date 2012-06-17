@@ -93,7 +93,17 @@ class Green
 
       def run_callbacks
         jobs, @callbacks = @callbacks, []
-        jobs.each(&:call)
+        begin
+          i = 0
+          while i < jobs.size
+            job = jobs[i]
+            jobs[i] = nil
+            job.call
+            i += 1
+          end
+        ensure
+          @callbacks[0...0] = jobs[i..-1]  if i < jobs.size
+        end
       end
 
       def time_till_first_event
