@@ -1,0 +1,14 @@
+language: ruby
+rvm:
+  - 1.9.2
+  - 1.9.3
+
+before_script:
+  - mysql -e '
+        create database widgets;
+        use widgets;
+        create table widgets (
+        id INT NOT NULL AUTO_INCREMENT,
+        title varchar(255),
+        PRIMARY KEY (`id`)
+        );'
