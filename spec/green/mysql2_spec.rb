@@ -6,14 +6,14 @@ require "green/group"
 describe Green::Mysql2 do
 
   DELAY = 0.25
-  QUERY = "SELECT sleep(#{DELAY}) as mysql2_query"
+  QUERY = "SELECT sleep(#{DELAY})"
 
   it "should support queries" do
     res = []
     db = Green::Mysql2::Client.new
     res = db.query QUERY
 
-    res.first.keys.must_include "mysql2_query"
+    res.first.keys.must_include "sleep(#{DELAY})"
   end
 
   it "should fire sequential, synchronous requests" do
