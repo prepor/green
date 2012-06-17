@@ -11,9 +11,12 @@ gem "nio4r"
 
 group :test do
   gem "rr"
-  gem "minitest"
-  gem "debugger"
+  gem "minitest"  
   gem "minitest-reporters"
+end
+
+group :development do
+  gem "debugger"
 end
 
 gemspec
