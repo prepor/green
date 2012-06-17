@@ -1,20 +1,16 @@
 require 'eventmachine'
 
 class ::EM::Timer
-  include Green::Waiter
-
   def green_cancel
     cancel
   end
 end
 
 module ::EM::Deferrable
-  include Green::Waiter
-
   def green_cancel
-    # instance_variable_get(:@callbacks).each { |c| cancel_callback c }
-    # instance_variable_get(:@errbacks).each { |c| cancel_errback c }
-    # cancel_timeout
+    instance_variable_get(:@callbacks).each { |c| cancel_callback c }
+    instance_variable_get(:@errbacks).each { |c| cancel_errback c }
+    cancel_timeout
   end
 end
 
@@ -23,57 +19,39 @@ class Green
     class EM < Hub
       class SocketWaiter < Green::SocketWaiter
         class Handler < ::EM::Connection
-          attr_accessor :waiter
+          attr_accessor :green
           def notify_readable        
-            check_readers
-          end
-
-          def check_readers
-            if notify_readable? && waiter.readers.size > 0
-              Green.hub.callback { check_readers }
-              waiter.readers.pop.switch
-            else
-              self.notify_readable = false
-            end
+            green.switch
           end
 
           def notify_writable
-            check_writers
-          end
-
-          def check_writers
-            if notify_writable? && waiter.writers.size > 0
-              Green.hub.callback { check_writers }
-              waiter.writers.pop.switch
-            else
-              self.notify_writable = false
-            end
+            green.switch
           end
         end
 
         def wait_read
-          @handler ||= make_handler
-          @handler.notify_readable = true
-          super
+          make_handler(:readable)
         end
 
         def wait_write
-          @handler ||= make_handler
-          @handler.notify_writable = true
-          super
+          make_handler(:writable)
         end
 
-        def make_handler
-          ::EM.watch socket, Handler do |c|
-            c.waiter = self
+        def make_handler(mode)
+          h = ::EM.watch socket, Handler do |c|
+            c.green = Green.current
           end
+          case mode
+          when :readable
+            h.notify_readable = true
+          when :writable
+            h.notify_writable = true
+          end
+          Green.hub.switch
+        ensure
+          h.detach
         end
 
-        def cancel
-          return unless @handler
-          sig = @handler.signature
-          ::EM.detach_fd sig
-        end
       end
       # если мы запускаем приложение внутри thin или rainbows с EM, то значит мы уже внутри EM-реактора, а hub должен переключиться в main тред.
       def run

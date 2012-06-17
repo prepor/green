@@ -6,7 +6,7 @@ class Green
     class Waiter
       attr_reader :socket_waiter, :waiters
       def initialize(fd)
-        @socket_waiter = Green.hub.socket_waiter(fd)
+        @socket_waiter = Green.hub.socket_waiter(Socket.for_fd(fd))
         @waiters = []
         @notifier = Green.spawn do
           while true
@@ -28,7 +28,6 @@ class Green
       end
 
       def cancel
-        @socket_waiter.cancel
         @notifier.kill
       end
     end

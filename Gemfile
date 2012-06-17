@@ -6,6 +6,8 @@ gem "ffi-rzmq"
 gem "mysql2"
 gem "unicorn"
 gem "activerecord"
+gem "algorithms"
+gem "nio4r"
 
 group :test do
   gem "rr"

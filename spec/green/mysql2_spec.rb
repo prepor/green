@@ -24,7 +24,7 @@ describe Green::Mysql2 do
 
     res.push db.query QUERY
     res.push db.query QUERY
-    (Time.now.to_f - start.to_f).must_be_within_epsilon DELAY * res.size, DELAY * res.size * 0.15
+    (Time.now.to_f - start.to_f).must_be_within_delta DELAY * res.size, DELAY * res.size * 0.15
   end
 
   it "should fire simultaneous requests via pool" do
@@ -33,13 +33,13 @@ describe Green::Mysql2 do
     end
 
     start = Time.now.to_f
-
+    res = []
     g = Green::Group.new
-    g.spawn { db.query(QUERY) }
-    g.spawn { db.query(QUERY) }
-    res = g.join
+    g.spawn { res << db.query(QUERY) }
+    g.spawn { res << db.query(QUERY) }
+    g.join
 
-    (Time.now.to_f - start.to_f).must_be_within_epsilon DELAY, DELAY * 0.30
+    (Time.now.to_f - start.to_f).must_be_within_delta DELAY, DELAY * 0.30
     res.size.must_equal 2
   end
 

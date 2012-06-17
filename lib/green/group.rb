@@ -5,11 +5,12 @@ class Green
     attr_reader :options, :greens
     def initialize(options = {})      
       @options = options
+      @options[:klass] ||= Green
       @greens = []
     end
 
     def spawn(*args, &blk)
-      g = Green.spawn do
+      g = @options[:klass].spawn do
         blk.call(*args)
       end
       add g
@@ -30,11 +31,9 @@ class Green
     end
 
     def join
-      res = []
       while (g = greens.first)
-        res << g.join
+        g.join
       end
-      res
     end
 
     def kill

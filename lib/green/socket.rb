@@ -67,7 +67,6 @@ class Green
 
     def accept
       s, a = accept_nonblock
-      Kernel.puts "ACCEPT FD: #{s.fileno}"
       [self.class.accept_socket_class.for_fd(s.fileno), a]
     rescue Errno::EAGAIN
       waiter.wait_read
@@ -87,11 +86,6 @@ class Green
 
     def waiter
       @waiter ||= Green.hub.socket_waiter(self)
-    end
-
-    def close
-      waiter.cancel if @waiter
-      super
     end
   end
 

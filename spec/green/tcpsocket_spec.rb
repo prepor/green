@@ -51,8 +51,11 @@ describe Green::TCPSocket do
     end
     g.join
     blk.call s, client
-    s.close unless s.closed?
-    client.close unless client.closed?
+    begin
+      s.close unless s.closed?
+      client.close unless client.closed?
+    rescue Errno::EBADF
+    end
   ensure
     server.close
   end
@@ -360,7 +363,7 @@ describe Green::TCPSocket do
             Green.sleep 0.01
             proc {
               c.write 100000.times.to_a * '' # on small chunks it can not raise exception
-            }.must_raise Errno::EPIPE
+            }.must_raise Errno::EPIPE, Errno::ECONNRESET, Errno::EBADF
           end.join
         end
       end
@@ -386,7 +389,7 @@ describe Green::TCPSocket do
             Green.sleep 0.01
             proc {
               c.send 100000.times.to_a * '', 0
-            }.must_raise Errno::EPIPE
+            }.must_raise Errno::EPIPE, Errno::ECONNRESET, Errno::EBADF
           end.join
         end
       end

@@ -1,6 +1,5 @@
 class Green
   class Semaphore
-    include Green::Waiter
     attr_accessor :counter, :value
     def initialize(value = 1)
       @value = value

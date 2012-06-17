@@ -86,13 +86,13 @@ describe ZMQ::Socket do
   #   it "should increment numbers" do
   #     ctx = ZMQ::Context.new
   #     clients = Green::Group.new
-  #     10.times do
+  #     1.times do
   #       clients.spawn do
   #         s = ctx.socket ZMQ::REQ
   #         s.connect router_endpoint
   #         i = 0
   #         str = ''
-  #         100.times do
+  #         10.times do
   #           s.send_string i.to_s
   #           s.recv_string str            
   #           i = str.to_i

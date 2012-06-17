@@ -52,33 +52,15 @@ class Green
   end
 
   class SocketWaiter
-    attr_reader :socket, :readers, :writers
+    attr_reader :socket
     def initialize(socket)
       @socket = socket
-      @readers = []
-      @writers = []
     end
 
     def wait_read
-      g = Green.current
-      @readers << g
-      Green.hub.wait { @readers.delete g }
     end
 
     def wait_write
-      g = Green.current
-      @writers << g
-      Green.hub.wait { @writers.delete g }
-    end
-
-    def cancel
-      
-    end
-  end
-
-  module Waiter
-    def green_cancel
-      raise "override"
     end
   end
 
@@ -102,7 +84,10 @@ class Green
     end
 
     def make_hub
-      Hub::EM.new
+      hub_name = ENV['GREEN_HUB'] || 'Nio4r'
+      Hub.const_get(hub_name.to_sym).new
+      # Hub::Nio4r.new
+      # Hub::EM.new
     end
 
     def hub
@@ -111,7 +96,7 @@ class Green
     end
 
     def spawn(&blk)
-      Green.new(&blk).tap { |o| o.start }
+      new(&blk).tap { |o| o.start }
     end
 
     def timeout(n, &blk)
@@ -122,6 +107,14 @@ class Green
       res = blk.call
       timer.cancel
       res
+    end
+
+    def list_hash
+      @list_hash ||= {}
+    end
+
+    def list
+      list_hash.values
     end
   end
 
@@ -134,6 +127,7 @@ class Green
   require 'green/hub'
 
   require 'green/hub/em'
+  require 'green/hub/nio4r'
 
   include GreenMethods
 
@@ -141,15 +135,17 @@ class Green
   def initialize
     @callbacks = []
     @alive = true
-    @f = Fiber.new do
+    Green.list_hash[self] = self
+    @f = Fiber.new do      
       begin
-        *res = yield
+        res = yield
       rescue GreenKill => e
       end
       @alive = false
       @callbacks.each { |c| 
-        c.call(*res)
+        c.call(res)
       }
+      Green.list_hash.delete self
       Green.hub.switch
     end
     @f[:green] = self
@@ -174,7 +170,7 @@ class Green
 
   def join
     g = Green.current
-    callback { |*res| g.switch(*res) }
+    callback { |res| Green.hub.callback { g.switch(res) } }
     Green.hub.switch
   end
 

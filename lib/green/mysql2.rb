@@ -9,12 +9,7 @@ class Green
       end
 
       def green_waiter
-        @green_waiter ||= Green.hub.socket_waiter(self.socket)
-      end
-
-      def close
-        green_waiter.cancel
-        super
+        @green_waiter ||= Green.hub.socket_waiter(Socket.for_fd(self.socket))
       end
     end
   end
