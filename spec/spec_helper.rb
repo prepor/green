@@ -13,6 +13,7 @@ require 'green'
 MiniTest::Unit.runner = MiniTest::SuiteRunner.new
 MiniTest::Unit.runner.reporters << MiniTest::Reporters::SpecReporter.new
 
+
 # class MiniTest::Spec
 #   def teardown
 #     g = Green.current
