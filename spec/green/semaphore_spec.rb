@@ -46,33 +46,39 @@ describe Green::Mutex do
 
       it "should release lock" do
         i = 0
-        Green.spawn do 
+        e = Green::Event.new
+        group = Green::Group.new
+        g1 = group.spawn do 
           m.lock
-          g = Green.current
-          Green.hub.callback { g.switch }
-          Green.hub.switch
+          e.wait
           i += 1
           m.sleep
         end
-        Green.spawn do 
+        group.spawn do
+          e.set
           m.lock
           i.must_equal 1
+          m.unlock
+          Green.hub.callback { g1.switch }
         end
+        group.join
       end
 
       it "should wait unlock after switch" do
         i = 0
-        g1 = Green.spawn do 
+        group = Green::Group.new
+        g1 = group.spawn do 
           m.lock
           m.sleep
           i.must_equal 1
         end
-        g2 = Green.spawn do 
-          m.lock
-          Green.hub.callback { g1.switch; g2.switch }
+        group.spawn do 
+          m.lock          
           i += 1
-          m.unlock          
+          m.unlock
+          Green.hub.callback { g1.switch }
         end
+        group.join
       end
     end
       

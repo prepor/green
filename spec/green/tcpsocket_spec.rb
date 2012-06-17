@@ -51,13 +51,10 @@ describe Green::TCPSocket do
     end
     g.join
     blk.call s, client
-    begin
-      s.close unless s.closed?
-      client.close unless client.closed?
-    rescue Errno::EBADF
-    end
   ensure
-    server.close
+    s.close rescue nil
+    client.close rescue nil
+    server.close rescue nil
   end
   
   describe '#closed?' do

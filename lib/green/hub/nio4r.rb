@@ -36,10 +36,13 @@ class Green
         end
 
         def run
+          @runned = true
           clb.call
         end
 
         def green_cancel
+          return if @canceled || @runned
+          @canceled = true
           reactor.cancel_timer self
         end
 
