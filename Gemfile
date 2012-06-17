@@ -8,6 +8,7 @@ gem "unicorn"
 gem "activerecord"
 gem "algorithms"
 gem "nio4r"
+gem "rake"
 
 group :test do
   gem "rr"
