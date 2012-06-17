@@ -1,3 +1,6 @@
+Green [![Build Status](https://secure.travis-ci.org/prepor/green.png)](http://travis-ci.org/prepor/green)
+=====
+
 Cooperative multitasking for Ruby. Proof of concept.
 
 Based on Ruby 1.9 Fibers, but unlike EM::Synchrony it uses symmetric coroutines (only #current and #transfer used) and HUB-orientend architecture. So coroutines transfer control to HUB and HUB transfer control to coroutines. Coroutines never tranfer control to each other.
