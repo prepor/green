@@ -13,7 +13,7 @@ class Green
         end
       end
     end
-    
+
     def throw(exc = RuntimeException.new)
       Green.hub.callback { switch(ThrowException.new exc) }
     end
@@ -42,10 +42,6 @@ class Green
       @f = Fiber.current
     end
 
-    def switch(*args)
-      f.transfer(*args)
-    end
-
     def alive?
       f.alive?
     end
@@ -65,7 +61,7 @@ class Green
   end
 
   class << self
-    
+
     def thread_locals
       @thread_locals ||= {}
       @thread_locals[Thread.current] ||= {}
@@ -136,10 +132,12 @@ class Green
     @callbacks = []
     @alive = true
     Green.list_hash[self] = self
-    @f = Fiber.new do      
+    @f = Fiber.new do
       begin
         res = yield
       rescue GreenKill => e
+      rescue => e
+        Green.main.throw e
       end
       @alive = false
       @callbacks.each { |c| 

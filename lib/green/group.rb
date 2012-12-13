@@ -3,9 +3,9 @@ require 'green/semaphore'
 class Green
   class Group
     attr_reader :options, :greens
-    def initialize(options = {})      
+    def initialize(options = {})
       @options = options
-      @options[:klass] ||= Green
+      @options[:klass] ||= ::Green
       @greens = []
     end
 
@@ -56,9 +56,9 @@ class Green
             spawn(i) do |item|
               y << blk.call(item)
               waiting -= 1
-              e.set if waiting == 0 
+              e.set if waiting == 0
             end
-          end          
+          end
         rescue StopIteration
           e.wait
         end

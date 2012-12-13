@@ -45,7 +45,8 @@ class Green
       # resume any other pending connections (which will
       # immediately try to run acquire on the pool)
       def release(green)
-        @available.push(@reserved.delete(green.object_id))
+        conn = @reserved.delete(green.object_id)
+        @available.push(conn)
 
         if pending = @pending.shift
           Green.hub.callback { pending.switch }

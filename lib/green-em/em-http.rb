@@ -12,15 +12,14 @@ module EventMachine
          alias :a#{type} :#{type}
          def #{type}(options = {}, &blk)
            g = Green.current
-
            conn = setup_request(:#{type}, options, &blk)
            if conn.error.nil?
              conn.callback { g.switch(conn) }
-             conn.errback  { g.throw(HTTPException.new(conn)) }
+             conn.errback  { g.throw(HTTPException.new) }
              
              Green.hub.wait { conn.green_cancel }
            else
-             raise HTTPException.new(conn)
+             raise HTTPException.new
            end
          end
       ]

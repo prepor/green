@@ -15,7 +15,10 @@ class Green
 
     include Kgio::SocketMethods
 
-    alias :write :kgio_write
+    def write(str)
+      kgio_write(str)
+      str.bytesize
+    end
 
     def read(length = nil, buffer = nil)
       res = []

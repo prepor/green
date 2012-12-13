@@ -51,12 +51,12 @@ module ZMQ
       @waiter = Green::ZMQ::Waiter.new fd
     end
 
-    alias :bsend :send
-    def send(message, flags = 0)
-      return bsend(message, flags) if (flags & ZMQ::NOBLOCK) != 0
-      flags |= ZMQ::NOBLOCK
+    alias :bsendmsg :sendmsg
+    def sendmsg(message, flags = 0)
+      return bsendmsg(message, flags) if (flags & ZMQ::NonBlocking) != 0
+      flags |= ZMQ::NonBlocking
       loop do
-        rc = bsend message, flags
+        rc = bsendmsg message, flags
         if rc == -1 && ZMQ::Util.errno == EAGAIN
           @waiter.lock
         else
@@ -66,12 +66,12 @@ module ZMQ
       end
     end
 
-    alias :brecv :recv
-    def recv(message, flags = 0)
-      return brecv(message, flags) if (flags & ZMQ::NOBLOCK) != 0
-      flags |= ZMQ::NOBLOCK
+    alias :brecvmsg :recvmsg
+    def recvmsg(message, flags = 0)
+      return brecvmsg(message, flags) if (flags & ZMQ::NonBlocking) != 0
+      flags |= ZMQ::NonBlocking
       loop do
-        rc = brecv message, flags
+        rc = brecvmsg message, flags
         if rc == -1 && ZMQ::Util.errno == EAGAIN
           @waiter.lock
         else
@@ -84,7 +84,7 @@ module ZMQ
     alias :original_close :close
     def close
       @waiter.cancel
-      Green.hub.callback do        
+      Green.hub.callback do
         original_close
       end
     end

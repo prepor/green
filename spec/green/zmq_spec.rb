@@ -66,7 +66,7 @@ describe ZMQ::Socket do
   #   def spawn_workers
   #     @workers_ctx = ZMQ::Context.new
   #     @workers = Green::Group.new
-  #     10.times.to_a.map do 
+  #     10.times.map do
   #       @workers.spawn do
   #         begin
   #           s = @workers_ctx.socket ZMQ::REP
@@ -86,7 +86,7 @@ describe ZMQ::Socket do
   #   it "should increment numbers" do
   #     ctx = ZMQ::Context.new
   #     clients = Green::Group.new
-  #     1.times do
+  #     5.times do
   #       clients.spawn do
   #         s = ctx.socket ZMQ::REQ
   #         s.connect router_endpoint
@@ -94,11 +94,11 @@ describe ZMQ::Socket do
   #         str = ''
   #         10.times do
   #           s.send_string i.to_s
-  #           s.recv_string str            
+  #           s.recv_string str
   #           i = str.to_i
   #         end
   #         s.close
-  #         i.must_equal 100
+  #         i.must_equal 10
   #       end
   #     end
   #     Green.spawn do
@@ -112,7 +112,7 @@ describe ZMQ::Socket do
   #   after do
   #     @workers.kill
   #     @router_green.kill
-  #     @dealer_green.kill      
+  #     @dealer_green.kill 
   #     # @ctx.terminate # FIXME
   #     # @workers_ctx.terminate
   #   end
