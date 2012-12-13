@@ -3,7 +3,7 @@ require 'pp'
 require 'thread'
 
 class Green
-  VERSION = "0.0.1"
+  VERSION = "0.1"
 
   module GreenMethods
     def switch(*args)
