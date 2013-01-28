@@ -147,8 +147,6 @@ class Green
       begin
         res = yield
       rescue GreenKill => e
-      rescue => e
-        Green.main.throw e
       end
       @alive = false
       @callbacks.each { |c|

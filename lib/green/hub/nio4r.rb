@@ -105,7 +105,7 @@ class Green
             i += 1
           end
         ensure
-          @callbacks[0...0] = jobs[i..-1]  if i < jobs.size
+          @callbacks[0...0] = jobs[(i + 1)..-1]  if i < jobs.size
         end
       end
 
