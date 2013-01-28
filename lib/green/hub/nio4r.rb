@@ -1,6 +1,3 @@
-require 'nio'
-require 'algorithms'
-
 class Green
   class Hub
     class Nio4r < Hub
@@ -56,12 +53,15 @@ class Green
 
       attr_reader :callbacks, :timers, :cancel_timers
       def initialize(*args)
+        require 'nio'
+        require 'algorithms'
+
         @callbacks = []
         @timers = Containers::MinHeap.new
         @cancel_timers = {}
         super
       end
-      
+
       def reactor_running?
         @reactor_running
       end

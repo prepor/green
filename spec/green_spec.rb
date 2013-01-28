@@ -34,4 +34,11 @@ describe Green do
       (Time.now - t).must_be :<, 0.1
     end
   end
+
+  describe "exceptions" do
+    it "should raise exception from reactor to main fiber" do
+      Green.hub.callback { raise "ololo" }
+      proc { Green.sleep(0.1) }.must_raise RuntimeError
+    end
+  end
 end

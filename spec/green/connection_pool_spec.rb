@@ -8,8 +8,7 @@ QUERY = "select sleep(#{DELAY})"
 
 describe Green::ConnectionPool do
 
-  
-  let(:pool) { Green::ConnectionPool.new(size: size) { Green::Mysql2::Client.new } }
+  let(:pool) { Green::ConnectionPool.new(size: size) { Green::Mysql2::Client.new }.proxy }
 
   describe "pool size is exceeded" do
     let(:size) { 1 }
@@ -17,7 +16,7 @@ describe Green::ConnectionPool do
       start = Time.now.to_f
 
       g = Green::Group.new
-      res = [] 
+      res = []
       g.spawn { res << pool.query(QUERY) }
       g.spawn { res << pool.query(QUERY) }
       g.join

@@ -47,7 +47,7 @@ class Green
         return counter
       else
         g = Green.current
-        clb = proc do 
+        clb = proc do          
           if counter >= v && @links.size == 0
             wait_links.delete clb
             Green.hub.callback { g.switch }            

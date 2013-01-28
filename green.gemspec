@@ -4,8 +4,10 @@ Gem::Specification.new do |s|
   s.rubygems_version = '1.3.5'
 
   s.name              = 'green'
-  s.version           = '0.1'
-  s.date              = '2012-12-13'
+
+  s.version           = '0.1.1'
+  s.date              = '2013-01-28'
+
   s.rubyforge_project = 'green'
 
   s.summary     = "Cooperative multitasking fo Ruby"
@@ -25,11 +27,12 @@ Gem::Specification.new do |s|
   s.files = %w[
     Gemfile
     Gemfile.lock
-    Rakefile
     README.md
+    Rakefile
     app.ru
     green.gemspec
     lib/active_record/connection_adapters/green_mysql2_adapter.rb
+    lib/green-em.rb
     lib/green-em/em-http.rb
     lib/green.rb
     lib/green/activerecord.rb

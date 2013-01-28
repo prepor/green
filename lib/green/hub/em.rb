@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'eventmachine'
 
 class ::EM::Timer
@@ -20,7 +21,7 @@ class Green
       class SocketWaiter < Green::SocketWaiter
         class Handler < ::EM::Connection
           attr_accessor :green
-          def notify_readable        
+          def notify_readable
             green.switch
           end
 
@@ -55,7 +56,7 @@ class Green
       end
       # если мы запускаем приложение внутри thin или rainbows с EM, то значит мы уже внутри EM-реактора, а hub должен переключиться в main тред.
       def run
-        if ::EM.reactor_running?          
+        if ::EM.reactor_running?
           loop do
             Green.main.switch
           end

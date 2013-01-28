@@ -2,13 +2,24 @@ class Green
   class Hub
     attr_reader :g
     def initialize
+
+      start_hub
+    end
+
+    def start_hub
       c = Green.current
-      callback { c.switch }      
+      callback { c.switch }
       @g = Green.new do
-        run
+        begin
+          run
+        rescue => e
+          start_hub
+          raise
+        end
       end
       g.switch
     end
+
 
     def switch
       g.switch

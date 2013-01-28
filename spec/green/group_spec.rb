@@ -39,7 +39,8 @@ end
 describe Green::Pool do
   let(:e1) { Green::Event.new }
   let(:e2) { Green::Event.new }
-  let(:p) { Green::Pool.new size: 1}
+  let(:size) { 1 }
+  let(:p) { Green::Pool.new size: size }
 
   it "should wait each task" do
     result = ""
@@ -48,6 +49,27 @@ describe Green::Pool do
     p.join
     result.must_equal "fizbaz"
   end
+
+  describe "spawn attack" do
+    let(:size) { 10 }
+    it "should work correctly" do     
+      i = 0
+      100.times { p.spawn { i += 1 } }
+      p.join
+      i.must_equal 100
+    end
+
+    describe "with random timer" do
+      it "should work correctly" do     
+        i = 0
+        100.times { p.spawn { Green.sleep(rand); i += 1 } }
+        p.join
+        i.must_equal 100
+      end
+    end
+  end
+
+
 
   # ugly test :(
   it "should block after limit" do

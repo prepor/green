@@ -30,7 +30,7 @@ describe Green::Mysql2 do
   it "should fire simultaneous requests via pool" do
     db = Green::ConnectionPool.new(size: 2) do
       Green::Mysql2::Client.new
-    end
+    end.proxy
 
     start = Time.now.to_f
     res = []

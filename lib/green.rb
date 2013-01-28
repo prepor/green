@@ -3,7 +3,8 @@ require 'pp'
 require 'thread'
 
 class Green
-  VERSION = "0.1"
+  VERSION = "0.1.1"
+
 
   module GreenMethods
     def switch(*args)
@@ -33,6 +34,12 @@ class Green
     def []=(name, val)
       locals[name] = val
     end
+
+    def schedule(*args)
+      Green.hub.callback { self.switch(*args) }
+    end
+
+    alias call schedule
   end
 
   class Proxy
@@ -112,6 +119,10 @@ class Green
     def list
       list_hash.values
     end
+
+    def init
+      hub
+    end
   end
 
   class GreenError < StandardError; end
@@ -140,7 +151,7 @@ class Green
         Green.main.throw e
       end
       @alive = false
-      @callbacks.each { |c| 
+      @callbacks.each { |c|
         c.call(res)
       }
       Green.list_hash.delete self
