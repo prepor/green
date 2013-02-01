@@ -5,8 +5,8 @@ Gem::Specification.new do |s|
 
   s.name              = 'green'
 
-  s.version           = '0.1.1'
-  s.date              = '2013-01-28'
+  s.version           = '0.1.2'
+  s.date              = '2013-02-01'
 
   s.rubyforge_project = 'green'
 
