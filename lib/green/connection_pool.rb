@@ -26,24 +26,17 @@ class Green
     end
 
     def execute
-      begin
-        conn = acquire
-        yield conn
-      rescue => e
-        if @disconnect_class && e.is_a?(@disconnect_class)
-          disconnected = true
-          @available << @new_block.call
-        else
-          raise
-        end
-      ensure
-        if disconnected
-          try_next
-        else
-          release conn
-          try_next
-        end
+      conn = acquire
+      yield conn
+    rescue => e
+      if @disconnect_class && e.is_a?(@disconnect_class)
+        conn = nil
+        @available << @new_block.call
       end
+      raise
+    ensure
+      release(conn) if conn
+      try_next
     end
 
     def proxy
